@@ -153,6 +153,16 @@ test_python() {
   assert_git_not_dirty
 }
 
+test_python_gloo_with_tls() {
+  source ./create_test_cert.sh
+  time python test/run_test.py --include test_c10d_gloo --verbose --determine-from="$DETERMINE_FROM"
+  unset GLOO_DEVICE_TRANSPORT
+  unset GLOO_DEVICE_TRANSPORT_TCP_TLS_PKEY
+  unset GLOO_DEVICE_TRANSPORT_TCP_TLS_CERT
+  unset GLOO_DEVICE_TRANSPORT_TCP_TLS_CA_FILE
+  assert_git_not_dirty
+}
+
 
 test_aten() {
   # Test ATen
@@ -465,6 +475,9 @@ elif [[ "${BUILD_ENVIRONMENT}" == *vulkan-linux* ]]; then
   test_vulkan
 elif [[ "${BUILD_ENVIRONMENT}" == *-bazel-* ]]; then
   test_bazel
+if [[ "${BUILD_ENVIRONMENT}" == pytorch_linux_xenial_py3_6_gcc7_test ]]; then
+  test_python_gloo_with_tls
+fi
 else
   install_torchvision
   install_monkeytype
