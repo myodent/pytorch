@@ -110,12 +110,12 @@ void SparseCsrTensorImpl::set_member_tensors(
       ")");
 
   TORCH_CHECK(
-      col_indices.layout() == kStrided,
-      "expected col_indices to be a strided tensor, but got indices of layout ",
+      col_indices.layout() == kStrided && col_indices.is_contiguous(),
+      "expected col_indices to be a strided and contiguous tensor, but got indices of layout ",
       col_indices.layout());
   TORCH_CHECK(
-      crow_indices.layout() == kStrided,
-      "expected crow_indices to be a strided tensor, but got crow_indices of layout ",
+      crow_indices.layout() == kStrided && crow_indices.is_contiguous(),
+      "expected crow_indices to be a strided and contiguous tensor, but got crow_indices of layout ",
       crow_indices.layout());
   TORCH_CHECK(
       values.layout() == kStrided && values.is_contiguous(),
@@ -129,15 +129,22 @@ void SparseCsrTensorImpl::set_member_tensors(
       ") must match device type of device().type()",
       device().type(),
       ")");
+
   TORCH_CHECK(
-      values.is_cuda() || col_indices.get_device() == crow_indices.get_device(),
+      col_indices.get_device() == crow_indices.get_device(),
       "crow_indices and col_indices devices (",
       crow_indices.get_device(),
       ", ",
       col_indices.get_device(),
-      ") must match with the (non-cuda) device of values (",
-      values.get_device(),
-      ")");
+      ") must match");
+
+  TORCH_CHECK(
+        crow_indices.get_device() == values.get_device(),
+        "device of crow_indices (",
+        crow_indices.get_device(),
+        ") must match device of values (",
+        values.get_device(),
+        ")");
 
   TORCH_CHECK(
       col_indices.size(0) == values.size(0),
